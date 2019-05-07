@@ -1,5 +1,6 @@
 import graphene
 from graphene_django import DjangoObjectType
+from users.schema import UserType
 
 from .models import Link
 
@@ -21,6 +22,7 @@ class CreateLink(graphene.Mutation):
     id = graphene.Int()
     url = graphene.String()
     description = graphene.String()
+    posted_by =graphene.Field(UserType)
 
     #2   now to define the CreateLink arguments, ie. the data you can send to the server as a client making a create_link mutation request
     class Arguments:
@@ -28,7 +30,8 @@ class CreateLink(graphene.Mutation):
         description = graphene.String()
     #3
     def mutate(self, info, url, description):
-        link = Link(url=url, description=description)  #creates a new link with the passed url and description values
+        user = info.context.user or None
+        link = Link(url=url, description=description, posted_by=user)  #creates a new link with the passed url and description values
         link.save()  #saves the link
 
         #available values to return
@@ -36,6 +39,7 @@ class CreateLink(graphene.Mutation):
             id =link.id,
             url=link.url,
             description=link.description,
+            posted_by=link.posted_by,
         )
 #4
 class Mutation(graphene.ObjectType):
@@ -46,3 +50,5 @@ class Mutation(graphene.ObjectType):
 #2: Defines the data you can send to the server, in this case, the links’ url and description.
 #3: The mutation method: it creates a link in the database using the data sent by the user, through the url and description parameters.
 # After, the server returns the CreateLink class with the data just created. See how this matches the parameters set on #1.
+
+
