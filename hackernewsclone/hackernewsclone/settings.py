@@ -101,6 +101,13 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# Authentication
+# https://docs.djangoproject.com/en/2.0/ref/contrib/auth/#authentication-backends-reference
+
+AUTHENTICATION_BACKENDS = [
+    'graphql_jwt.backends.JSONWebTokenBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
 
 # Internationalization
 # https://docs.djangoproject.com/en/2.1/topics/i18n/
@@ -123,4 +130,8 @@ STATIC_URL = '/static/'
 
 GRAPHENE = {
     'SCHEMA': 'hackernewsclone.schema.schema',
+
+    'MIDDLEWARE': [
+        'graphql_jwt.middleware.JSONWebTokenMiddleware',
+    ],
 }
