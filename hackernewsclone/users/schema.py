@@ -2,6 +2,7 @@ from django.contrib.auth import get_user_model
 
 import graphene
 from graphene_django import DjangoObjectType
+from django.db.models import Q
 
 class UserType(DjangoObjectType):
     class Meta:
@@ -10,11 +11,25 @@ class UserType(DjangoObjectType):
 
 #Query
 class Query(graphene.ObjectType):
-    users = graphene.List(UserType)
+    users = graphene.List(UserType, username_search = graphene.String(), id_search = graphene.Int(), email_search = graphene.String())
     me = graphene.Field(UserType)
 
-    def resolve_users(self,info):
-        return get_user_model().objects.all()
+    def resolve_users(self, info, username_search = None, id_search = None, email_search = None):
+        qs = get_user_model().objects.all()
+
+        if username_search:
+            filter = (Q(username__iexact = username_search) | Q(username__icontains = username_search))  #Additional Section added by me. Queries username based on exact match or if search is contained within username
+            qs = qs.filter(filter)
+
+        if id_search:
+            filter = Q(id__exact = id_search)
+            qs = qs.filter(filter)
+
+        if email_search:
+            filter = Q(email__icontains = email_search)
+            qs = qs.filter(filter)
+
+        return qs
 
     def resolve_me(self, info):
         user = info.context.user
